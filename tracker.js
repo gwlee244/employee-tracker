@@ -1,9 +1,10 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var table = require("console.table");
 
 var connection = mysql.createConnection({
   host: "localhost",
-  port: 8080,
+  port: 3306,
   user: "root",
   password: "g0ldf!sh",
   database: "employee_tracker_db"
@@ -11,14 +12,16 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
-  employeeTrack();
+ // employeeTrack();
 });
+
+employeeTrack();
 
 function employeeTrack() {
   inquirer
     .prompt({
       name: "action",
-      type: "list",
+      type: "rawlist",
       message: "What would you like to do?",
       choices: [
         "View All Employees",
@@ -26,135 +29,143 @@ function employeeTrack() {
         "View All Employees By Manager",
         "Add Employee",
         "Remove Employee",
-        "Update Employee Role",
-        "Update Employee Manager",
-        "exit"
+        // "Update Employee Role",
+        // "Update Employee Manager",
+        "Exit"
       ]
     })
     .then(function(answer) {
       switch (answer.action) {
-      case "Find songs by artist":
-        artistSearch();
+      case "View All Employees":
+        viewAllEmployees();
         break;
 
-      case "Find all artists who appear more than once":
-        multiSearch();
+      case "View All Employees By Department":
+        employeeByDept();
         break;
 
-      case "Find data within a specific range":
-        rangeSearch();
-        break;
+      // case "View All Employees By Manager":
+      //   employeeByMgr();
+      //   break;
 
-      case "Search for a specific song":
-        songSearch();
-        break;
+      // case "Add Employee":
+      //   employeeAdd();
+      //   break;
 
-      case "exit":
+      // case "Remove Employee":
+      //   employeeRemove();
+      //   break;
+
+      // case "Update Employee Role":
+      //   employeeRoleUpdate();
+      //   break;
+
+      // case "Update Employee Manager":
+      //   employeeMgrUpdate();
+      //   break;
+
+      case "Exit":
         connection.end();
         break;
       }
-    });
+    })
 }
 
-function artistSearch() {
+function viewAllEmployees() {
+  var query = "select * from employee inner join role on employee.role_id = role.id inner join department on role.department_id = department.id";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employees found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function employeeByDept() {
   inquirer
     .prompt({
-      name: "artist",
-      type: "input",
-      message: "What artist would you like to search for?"
+      name: "action",
+      type: "rawlist",
+      message: "Select the department for which you want to see all the employees",
+      choices: [
+        "View All Sales Employees",
+        "View All Engineering Employees",
+        "View All Finance Employees",
+        "View All Legal Employees",
+        "Start Over",
+        "Exit"
+      ]
     })
     .then(function(answer) {
-      var query = "SELECT position, song, year FROM top5000 WHERE ?";
-      connection.query(query, { artist: answer.artist }, function(err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Year: " + res[i].year);
-        }
-        start();
-      });
-    });
-}
+      switch (answer.action) {
+      case "View All Sales Employees":
+        bySales();
+        break;
 
-function multiSearch() {
-  var query = "SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1";
-  connection.query(query, function(err, res) {
-    if (err) throw err;
-    for (var i = 0; i < res.length; i++) {
-      console.log(res[i].artist);
-    }
-    start();
-  });
-}
+      case "View All Engineering Employees":
+        byEngineering();
+        break;
 
-function rangeSearch() {
-  inquirer
-    .prompt([
-      {
-        name: "start",
-        type: "input",
-        message: "Enter starting position: ",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
-        }
-      },
-      {
-        name: "end",
-        type: "input",
-        message: "Enter ending position: ",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
-        }
+      case "View All Finance Employees":
+        byFinance();
+        break;
+
+      case "View All Legal Employees":
+        byLegal();
+        break;
+
+      case "Start Over":
+        employeeTrack();
+        break;
+
+        case "Exit":
+        connection.end();
+        break;
       }
-    ])
-    .then(function(answer) {
-      var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-      connection.query(query, [answer.start, answer.end], function(err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log(
-            "Position: " +
-              res[i].position +
-              " || Song: " +
-              res[i].song +
-              " || Artist: " +
-              res[i].artist +
-              " || Year: " +
-              res[i].year
-          );
-        }
-        start();
-      });
-    });
+    })
 }
 
-function songSearch() {
-  inquirer
-    .prompt({
-      name: "song",
-      type: "input",
-      message: "What song would you like to look for?"
-    })
-    .then(function(answer) {
-      console.log(answer.song);
-      connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function(err, res) {
-        if (err) throw err;
-        console.log(
-          "Position: " +
-            res[0].position +
-            " || Song: " +
-            res[0].song +
-            " || Artist: " +
-            res[0].artist +
-            " || Year: " +
-            res[0].year
-        );
-        start();
-      });
-    });
+function bySales() {
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 5";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employee(s) found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function byEngineering() {
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 6";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employee(s) found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function byFinance() {
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 7";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employee(s) found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function byLegal() {
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 8";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employee(s) found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
 }
