@@ -7,7 +7,7 @@ insert into employee(first_name, last_name, role_id, manager_id)
 values ("Mike", "Jones", 6, 1);
 
 insert into employee(first_name, last_name, role_id, manager_id)
-values ("Steve", "Judge", 6, 2);
+values ("Steve", "Judge", 6, 1);
 
 insert into employee(first_name, last_name, role_id, manager_id)
 values ("Amy", "Gardner", 7, 1);

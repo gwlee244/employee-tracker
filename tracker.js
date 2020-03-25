@@ -21,7 +21,7 @@ function employeeTrack() {
   inquirer
     .prompt({
       name: "action",
-      type: "rawlist",
+      type: "list",
       message: "What would you like to do?",
       choices: [
         "View All Employees",
@@ -44,13 +44,13 @@ function employeeTrack() {
         employeeByDept();
         break;
 
-      // case "View All Employees By Manager":
-      //   employeeByMgr();
-      //   break;
+      case "View All Employees By Manager":
+        employeeByMgr();
+        break;
 
-      // case "Add Employee":
-      //   employeeAdd();
-      //   break;
+      case "Add Employee":
+        employeeAdd();
+        break;
 
       // case "Remove Employee":
       //   employeeRemove();
@@ -72,7 +72,7 @@ function employeeTrack() {
 }
 
 function viewAllEmployees() {
-  var query = "select * from employee inner join role on employee.role_id = role.id inner join department on role.department_id = department.id";
+  var query = "select * from employee order by employee.id asc";
   connection.query(query, (err, res) => {
     if(err) throw err;
     console.log(res.length + " employees found!");
@@ -86,7 +86,7 @@ function employeeByDept() {
   inquirer
     .prompt({
       name: "action",
-      type: "rawlist",
+      type: "list",
       message: "Select the department for which you want to see all the employees",
       choices: [
         "View All Sales Employees",
@@ -169,3 +169,52 @@ function byLegal() {
     employeeTrack();
   })
 }
+
+function employeeByMgr() {
+  var query = "select employee.first_name, employee.last_name from employee where manager_id = 1";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " employees found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function employeeAdd() {
+  inquirer
+    .prompt([
+    {
+      name: "firstName",
+      type: "input",
+      message: "Enter the employee's first name:"
+    },
+    {
+      name: "lastName",
+      type: "input",
+      message: "Enter the employee's last name:"
+    },
+    {
+      name: "roleId",
+      type: "list",
+      message: "Select the employee's role(5-Manager, 6-Software Engineer, 7-Analyst, 8-Lawyer",
+      choices: [
+        "5",
+        "6",
+        "7",
+        "8"
+      ]},
+    {
+      name: "managerId",
+      type: "input",
+      message: "Enter the employee's manager ID:"
+    }
+    ])
+    .then(function(answer) {
+      var query = "insert into employee (first_name, last_name, role_id, manager_id) values (?, ?, ?, ?)";
+      connection.query(query, [answer.firstName, answer.lastName, answer.roleId, answer.managerId], (err, data) => {
+        if (err) throw err;
+        employeeTrack();
+      })
+    })
+};
