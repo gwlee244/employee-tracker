@@ -30,7 +30,7 @@ function employeeTrack() {
         "Add a Department",
         "View All Roles",
         "Add a Role",
-        "Update Employee Role",
+        //"Update Employee Role",
         "Exit"
       ]
     })
@@ -67,9 +67,9 @@ function employeeTrack() {
         roleAdd();
         break;
 
-      case "Update Employee Role":
-        updateRole();
-        break;
+      // case "Update Employee Role":
+      //   updateRole();
+      //   break;
 
       case "Exit":
         connection.end();
@@ -140,7 +140,7 @@ function employeeByDept() {
 }
 
 function bySales() {
-  var query = "select employee.first_name, employee.last_name from employee where role_id = 5";
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 1";
   connection.query(query, (err, res) => {
     if(err) throw err;
     console.log(res.length + " employee(s) found!");
@@ -151,7 +151,7 @@ function bySales() {
 }
 
 function byEngineering() {
-  var query = "select employee.first_name, employee.last_name from employee where role_id = 6";
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 2";
   connection.query(query, (err, res) => {
     if(err) throw err;
     console.log(res.length + " employee(s) found!");
@@ -162,7 +162,7 @@ function byEngineering() {
 }
 
 function byFinance() {
-  var query = "select employee.first_name, employee.last_name from employee where role_id = 7";
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 3";
   connection.query(query, (err, res) => {
     if(err) throw err;
     console.log(res.length + " employee(s) found!");
@@ -173,7 +173,7 @@ function byFinance() {
 }
 
 function byLegal() {
-  var query = "select employee.first_name, employee.last_name from employee where role_id = 8";
+  var query = "select employee.first_name, employee.last_name from employee where role_id = 4";
   connection.query(query, (err, res) => {
     if(err) throw err;
     console.log(res.length + " employee(s) found!");
@@ -199,12 +199,12 @@ function employeeAdd() {
     {
       name: "roleId",
       type: "list",
-      message: "Select the employee's role(5-Manager, 6-Software Engineer, 7-Analyst, 8-Lawyer",
+      message: "Select the employee's role(1-Manager, 2-Software Engineer, 3-Analyst, 4-Lawyer",
       choices: [
-        "5",
-        "6",
-        "7",
-        "8"
+        "1",
+        "2",
+        "3",
+        "4"
       ]},
     {
       name: "managerId",
@@ -285,45 +285,48 @@ function roleAdd() {
     }))
 }
 
-function updateRole() {
-  var staff = [];
-  var roles = [];
-  connection.query("select first_name from employee", (err, res) => {
-    if (err) throw err;
-    for (i = 0; i < res.length; i++) {
-      staff.push(res[i].first_name);
-    }
-    connection.query("select title from role", (err, response) => {
-      if (err) throw err;
-      for (i = 0; i < response.length; i++) {
-        roles.push(response[i].title);
-      }
-      inquirer
-        .prompt([
-          {
-            type: "list",
-            name: "employeeName",
-            message: "Choose an employee to update:",
-            choices: staff
-          },
-          {
-            type: "list",
-            name: "employeeRole",
-            message: "Choose a new role:",
-            choices: roles
-          }
-        ])
-        .then((function(answer) {
-          connection.query("select id from role where ?", { first_name: answer.employeeRole }, (err, res) => {
-            if (err) throw err;
-            connection.query("update employee set role_id = '+res[0].id+' where first_name = answer.employeeName", (err, res) => {
-              if (err) throw err;
+/// working on update function....
+
+// function updateRole() {
+//   var staff = [];
+//   var roles = [];
+//   connection.query("select first_name from employee", (err, res) => {
+//     if (err) throw err;
+//     for (i = 0; i < res.length; i++) {
+//       staff.push(res[i].first_name);
+//     }
+//     connection.query("select title from role", (err, response) => {
+//       if (err) throw err;
+//       for (i = 0; i < response.length; i++) {
+//         roles.push(response[i].title);
+//       }
+//       inquirer
+//         .prompt([
+//           {
+//             type: "list",
+//             name: "employeeName",
+//             message: "Choose an employee to update:",
+//             choices: staff
+//           },
+//           {
+//             type: "list",
+//             name: "employeeRole",
+//             message: "Choose a new role:",
+//             choices: roles
+//           }
+//         ])
+//         .then((function(answer) {
+//           console.log(answer);
+//           connection.query({ first_name: answer.employeeRole }, (err, res) => {
+//             if (err) throw err;
+//             connection.query("update employee set role_id = '+res[0].id+' where first_name = answer.employeeName", (err, res) => {
+//               if (err) throw err;
               
-              employeeTrack();
-            })
-          })
-        }
-      ))
-    })
-  })
-}
+//               employeeTrack();
+//             })
+//           })
+//         }
+//       ))
+//     })
+//   })
+// }
