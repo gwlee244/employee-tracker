@@ -12,7 +12,6 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
- // employeeTrack();
 });
 
 employeeTrack();
@@ -26,11 +25,12 @@ function employeeTrack() {
       choices: [
         "View All Employees",
         "View All Employees By Department",
-        "View All Employees By Manager",
         "Add Employee",
-        "Remove Employee",
-        // "Update Employee Role",
-        // "Update Employee Manager",
+        "View All Departments",
+        "Add a Department",
+        "View All Roles",
+        "Add a Role",
+        "Update Employee Role",
         "Exit"
       ]
     })
@@ -44,25 +44,32 @@ function employeeTrack() {
         employeeByDept();
         break;
 
-      case "View All Employees By Manager":
-        employeeByMgr();
-        break;
-
       case "Add Employee":
         employeeAdd();
         break;
 
-      // case "Remove Employee":
+      //case "Remove Employee":
       //   employeeRemove();
       //   break;
+      case "View All Departments":
+        viewDepartments();
+        break;
 
-      // case "Update Employee Role":
-      //   employeeRoleUpdate();
-      //   break;
+      case "Add a Department":
+        deptAdd();
+        break;
+      
+      case "View All Roles":
+        viewRoles();
+        break;
 
-      // case "Update Employee Manager":
-      //   employeeMgrUpdate();
-      //   break;
+      case "Add a Role":
+        roleAdd();
+        break;
+
+      case "Update Employee Role":
+        updateRole();
+        break;
 
       case "Exit":
         connection.end();
@@ -80,6 +87,12 @@ function viewAllEmployees() {
     console.log("\n");
     employeeTrack();
   })
+  // var query = "select employee.first_name, employee.last_name, role.title, role.salary, department.name from employee outer join role on employee.id = role.id outer join department on role.id = department.id";
+  // connection.query(query, (err, res) => {
+  //   if (err) throw err;
+  //   console.table(res);
+  //   employeeTrack();
+  // })
 }
 
 function employeeByDept() {
@@ -170,17 +183,6 @@ function byLegal() {
   })
 }
 
-function employeeByMgr() {
-  var query = "select employee.first_name, employee.last_name from employee where manager_id = 1";
-  connection.query(query, (err, res) => {
-    if(err) throw err;
-    console.log(res.length + " employees found!");
-    console.table(res);
-    console.log("\n");
-    employeeTrack();
-  })
-}
-
 function employeeAdd() {
   inquirer
     .prompt([
@@ -218,3 +220,110 @@ function employeeAdd() {
       })
     })
 };
+function viewDepartments() {
+  var query = "select * from department order by department.id asc";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " departments found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function deptAdd() {
+  inquirer
+    .prompt([
+      {
+        name: "name",
+        message: "What is the department name being added?"
+      }
+    ])
+    .then((function(answer) {
+      var query = "insert into department (department.name) values (?)";
+      connection.query(query, [answer.name], (err, res) => {
+        if (err) throw err;
+        employeeTrack();
+      
+      })
+    }))
+}
+
+function viewRoles() {
+  var query = "select * from role order by role.id asc";
+  connection.query(query, (err, res) => {
+    if(err) throw err;
+    console.log(res.length + " roles found!");
+    console.table(res);
+    console.log("\n");
+    employeeTrack();
+  })
+}
+
+function roleAdd() {
+  inquirer
+    .prompt([
+      {
+        name: "title",
+        message: "What is the role name being added?"
+      },
+      {
+        name: "salary",
+        message: "What is the salary for this role?"
+      },
+      {
+        name: "department_id",
+        message: "What department ID does the role belong to?"
+      }
+    ])
+    .then((function(answer) {
+      var query = "insert into role (role.title, role.salary, role.department_id) values (?, ?, ?)";
+      connection.query(query, [answer.title, answer.salary, answer.department_id], (err, res) => {
+        if (err) throw err;
+        employeeTrack();
+      })
+    }))
+}
+
+function updateRole() {
+  var staff = [];
+  var roles = [];
+  connection.query("select first_name from employee", (err, res) => {
+    if (err) throw err;
+    for (i = 0; i < res.length; i++) {
+      staff.push(res[i].first_name);
+    }
+    connection.query("select title from role", (err, response) => {
+      if (err) throw err;
+      for (i = 0; i < response.length; i++) {
+        roles.push(response[i].title);
+      }
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "employeeName",
+            message: "Choose an employee to update:",
+            choices: staff
+          },
+          {
+            type: "list",
+            name: "employeeRole",
+            message: "Choose a new role:",
+            choices: roles
+          }
+        ])
+        .then((function(answer) {
+          connection.query("select id from role where ?", { first_name: answer.employeeRole }, (err, res) => {
+            if (err) throw err;
+            connection.query("update employee set role_id = '+res[0].id+' where first_name = answer.employeeName", (err, res) => {
+              if (err) throw err;
+              
+              employeeTrack();
+            })
+          })
+        }
+      ))
+    })
+  })
+}
